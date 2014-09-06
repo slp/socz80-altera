@@ -442,24 +442,8 @@ main_proc: process(clk)
                iob_data        <= iob_data_next;
          
             when s_write_3 =>  -- must wait tRDL, hence the extra idle state
-               -- back to back transaction?
-               if forcing_refresh = '0' and got_transaction = '1' and can_back_to_back = '1' then
-                  if save_wr = '1' then
-                     -- back-to-back write?
-                     state           <= s_write_1;
-                     ready_for_new   <= '1';
-                     got_transaction <= '0';
-                  else
-                     -- write-to-read switch?
-                     state           <= s_read_1;
-                     iob_dq_hiz      <= '1';
-                     ready_for_new   <= '1'; -- we will be ready for a new transaction next cycle!
-                     got_transaction <= '0';                  
-                  end if;
-               else
-                  iob_dq_hiz         <= '1';
-                  state              <= s_precharge;
-               end if;
+               iob_dq_hiz         <= '1';
+               state              <= s_precharge;
 
             -------------------------------------------------------------------
             -- Closing the row off (this closes all banks)

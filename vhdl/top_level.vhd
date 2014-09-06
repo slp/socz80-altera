@@ -15,8 +15,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
-library UNISIM;
-use UNISIM.VComponents.all;
 
 entity top_level is
     Port ( sysclk_32m          : in    std_logic;
@@ -169,7 +167,7 @@ begin
             console_select_sync <= console_select_clk1;
 
             -- reset the system when requested
-            if (power_on_reset(0) = '1' or reset_button_sync = '1' or reset_request_uart = '1') then
+            if (power_on_reset(0) = '1') then
                 system_reset <= '1';
             else
                 system_reset <= '0';
