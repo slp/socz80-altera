@@ -112,29 +112,19 @@ architecture behaviour of DRAM is
     signal current_state : controller_state;
     signal next_state    : controller_state;
 
-    -- here's the cache memory signals
-    signal cache_line_memory_write_enable : std_logic;
-    signal cache_line_memory_data_in      : std_logic_vector(35 downto 0); -- 35 downto 32: validity bits; 31 downto 0: four data bytes
-    signal cache_line_memory_data_out     : std_logic_vector(35 downto 0);
-    signal cache_tag_memory_write_enable  : std_logic;
-    signal cache_tag_memory_data_in       : std_logic_vector(8 downto 0);
-    signal cache_tag_memory_data_out      : std_logic_vector(8 downto 0);
-
     -- break up the incoming physical address
     alias address_byte       : std_logic_vector(1 downto 0)  is mem_address(1 downto 0);
     alias address_line       : std_logic_vector(11 downto 0) is mem_address(13 downto 2);
     alias address_tag        : std_logic_vector(8 downto 0)  is mem_address(22 downto 14);
     alias address_word       : std_logic_vector(20 downto 0) is mem_address(22 downto 2);
-                                                             -- mem_address(23) is unused in this design
-    alias cache_inhibit      : std_logic                     is mem_address(24);
+                                                             -- mem_address(23) and mem_address(24) are unused in this design
 
 begin
 
     -- this should be based on the generic, really
-    cmd_address <= mem_address(22 downto 2); -- address_tag & address_line
+    cmd_address <= '0' & '0' & mem_address(22 downto 2); -- address_tag & address_line
     cmd_data_in <= data_in & data_in & data_in & data_in; -- write the same data four times
     cmd_wr <= req_write;
-    cache_tag_memory_data_in <= address_tag;
     coldboot <= not seen_ready;
 
     compute_next_state: process(req_read, req_write, current_state, cache_hit, cmd_ready, cs, sdram_data_out_ready, word_changed)
@@ -152,14 +142,9 @@ begin
                             next_state <= st_idle;
                             -- come back next cycle!
                         else
-                            if cache_hit = '1' then
-                                mem_wait <= '0';
-                                next_state <= st_read_done;
-                            else
-                                cmd_enable <= '1';
-                                mem_wait <= '1';
-                                next_state <= st_read;
-                            end if;
+                            cmd_enable <= '1';
+                            mem_wait <= '1';
+                            next_state <= st_read;
                         end if;
                     elsif req_write = '1' then
                         if word_changed = '1' then
@@ -191,14 +176,14 @@ begin
                     -- this kind of implies that they gave up on us?
                     next_state <= st_idle;
                 end if;
-                mem_wait <= (not sdram_data_out_ready) and (not cache_hit);
+                mem_wait <= (not sdram_data_out_ready);
             when st_read_done =>
                 if cs = '1' and req_read = '1' then
                     next_state <= st_read_done;
                 else
                     next_state <= st_idle;
                 end if;
-                mem_wait <= (not sdram_data_out_ready) and (not cache_hit);
+                mem_wait <= (not sdram_data_out_ready);
             when st_write =>
                 if cs = '1' and req_write = '1' then
                     next_state <= st_write;
@@ -218,37 +203,6 @@ begin
         end if;
     end process;
 
-    cache_address_check: process(cache_tag_memory_data_out, cache_line_memory_data_out, address_tag)
-    begin
-        if cache_tag_memory_data_out = address_tag then
-            address_hit <= '1';
-            current_byte_valid <= cache_line_memory_data_out(35 downto 32);
-        else
-            address_hit <= '0';
-            current_byte_valid <= "0000";
-        end if;
-    end process;
-
-    cache_byte_valid_check: process(address_byte, current_byte_valid)
-    begin
-        case address_byte is
-            when "00"   => byte_valid_hit <= current_byte_valid(0);
-            when "01"   => byte_valid_hit <= current_byte_valid(1);
-            when "10"   => byte_valid_hit <= current_byte_valid(2);
-            when "11"   => byte_valid_hit <= current_byte_valid(3);
-            when others => byte_valid_hit <= '0';
-        end case;
-    end process;
-
-    cache_hit_check: process(byte_valid_hit, address_hit, cache_inhibit)
-    begin
-        if address_hit = '1' and byte_valid_hit = '1' and cache_inhibit = '0' then
-            cache_hit <= '1';
-        else
-            cache_hit <= '0';
-        end if;
-    end process;
-
     byte_enable_decode: process(address_byte)
     begin
         case address_byte is
@@ -260,14 +214,14 @@ begin
         end case;
     end process;
 
-    data_out_demux: process(address_byte, sdram_data_out_ready, sdram_data_out, cache_line_memory_data_out, current_word)
+    data_out_demux: process(address_byte, sdram_data_out_ready, sdram_data_out, current_word)
     begin
         -- when the SDRAM is presenting data, feed it direct to the CPU.
         -- otherwise feed data from our cache memory.
         if sdram_data_out_ready = '1' then
             current_word <= sdram_data_out;
         else
-            current_word <= cache_line_memory_data_out(31 downto 0);
+            current_word <= (others => '0');
         end if;
 
         case address_byte is
@@ -277,51 +231,6 @@ begin
             when "11"   => data_out <= current_word(31 downto 24);
             when others => data_out <= current_word(31 downto 24);
         end case;
-    end process;
-
-    cache_write: process(current_state, data_in, next_state, write_back, cache_line_memory_data_out, sdram_data_out, sdram_data_out_ready, address_byte, current_byte_valid)
-    begin
-        if (next_state = st_read) or (write_back = '1') then
-            cache_tag_memory_write_enable <= '1';
-        else
-            cache_tag_memory_write_enable <= '0';
-        end if;
-
-        cache_line_memory_write_enable <= '0';
-        cache_line_memory_data_in <= cache_line_memory_data_out;
-
-        if next_state = st_read then
-            cache_line_memory_data_in <= (others => '0'); -- set word and all valid flags to 1
-            cache_line_memory_write_enable <= '1';
-        end if;
-
-        -- has our read completed?
-        if current_state = st_read then
-            if sdram_data_out_ready = '1' then
-                cache_line_memory_data_in <= "1111" & sdram_data_out;
-                cache_line_memory_write_enable <= '1';
-            end if;
-        elsif write_back = '1' then 
-            case address_byte is
-                when "00"   =>
-                    cache_line_memory_data_in <= current_byte_valid(3 downto 1) & "1" & 
-                                                 cache_line_memory_data_out(31 downto  8) & data_in;
-                when "01"   =>
-                    cache_line_memory_data_in <= 
-                                                current_byte_valid(3 downto 2) & "1" & current_byte_valid(0) &
-                                                cache_line_memory_data_out(31 downto 16) & data_in & cache_line_memory_data_out(7 downto 0);
-                when "10"   =>
-                    cache_line_memory_data_in <= 
-                                                current_byte_valid(3) & "1" & current_byte_valid(1 downto 0) &
-                                                cache_line_memory_data_out(31 downto 24) & data_in & cache_line_memory_data_out(15 downto 0);
-                when "11"   =>
-                    cache_line_memory_data_in <= 
-                                                "1" & current_byte_valid(2 downto 0) &
-                                                data_in & cache_line_memory_data_out(23 downto 0);
-                when others => -- shut up, compiler!
-            end case;
-            cache_line_memory_write_enable <= '1';
-        end if;
     end process;
 
     sdram_registers: process(clk)
@@ -370,26 +279,4 @@ begin
                 SDRAM_DATA      => SDRAM_DQ
             );
 
-    -- block RAM used to store cache line data and byte validity (packs nicely into 36 bits)
-    cacheline_memory_sram: entity work.RAM4K36
-    port map (
-        clk      => clk,
-        reset    => reset,
-        write    => cache_line_memory_write_enable,
-        address  => address_line,
-        data_in  => cache_line_memory_data_in,
-        data_out => cache_line_memory_data_out
-        
-    );
-
-    -- block RAM used to store cache line tag memory (packs nicely into 9 bits)
-    cachetag_memory_sram: entity work.RAM4K9
-    port map (
-        clk      => clk,
-        reset    => reset,
-        write    => cache_tag_memory_write_enable,
-        address  => address_line,
-        data_in  => cache_tag_memory_data_in,
-        data_out => cache_tag_memory_data_out
-    );
 end;

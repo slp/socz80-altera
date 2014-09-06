@@ -26,8 +26,9 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
-use UNISIM.VComponents.all;
 use IEEE.NUMERIC_STD.ALL;
+library altera_mf;
+use altera_mf.altera_mf_components.all;
 
 
 entity SDRAM_Controller is
@@ -190,14 +191,6 @@ begin
    --addr_bank             <= cmd_address( 9 downto  8);      -- 1:0  <=  9:8
    --addr_col(8 downto 0)  <= cmd_address( 7 downto  0) & '0'; -- 8:0  <=  7:0 & '0'
 
-   -----------------------------------------------------------
-   -- Forward the SDRAM clock to the SDRAM chip - 180 degress 
-   -- out of phase with the control signals (ensuring setup and holdup 
-  -----------------------------------------------------------
- sdram_clk_forward : ODDR2
-   generic map(DDR_ALIGNMENT => "NONE", INIT => '0', SRTYPE => "SYNC")
-   port map (Q => sdram_clk, C0 => clk, C1 => not clk, CE => '1', R => '0', S => '0', D0 => '0', D1 => '1');
-
    -----------------------------------------------
    --!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    --!! Ensure that all outputs are registered. !!
@@ -218,9 +211,9 @@ begin
    ---------------------------------------------------------------
 iob_dq_g: for i in 0 to 15 generate
    begin
-iob_dq_iob: IOBUF
-   generic map (DRIVE => 12, IOSTANDARD => "LVTTL", SLEW => "FAST")
-   port map ( O  => sdram_din(i), IO => sdram_data(i), I  => iob_data(i), T  => iob_dq_hiz);
+iob_dq_iob: altiobuf_bidir
+   generic map (number_of_channels => 1)
+   port map ( dataout(0)  => sdram_din(i), dataio(0) => sdram_data(i), datain(0) => iob_data(i), oe(0)  => iob_dq_hiz);
 end generate;
                                      
 capture_proc: process(clk) 
@@ -447,17 +440,6 @@ main_proc: process(clk)
             when s_write_2 =>
                state           <= s_write_3;
                iob_data        <= iob_data_next;
-               -- can we do a back-to-back write?
-               if forcing_refresh = '0' and got_transaction = '1' and can_back_to_back = '1' then
-                  if save_wr = '1' then
-                     -- back-to-back write?
-                     state           <= s_write_1;
-                     ready_for_new   <= '1';
-                     got_transaction <= '0';
-                  end if;
-                  -- Although it looks right in simulation you can't go write-to-read 
-                  -- here due to bus contention, as iob_dq_hiz takes a few ns.
-               end if;
          
             when s_write_3 =>  -- must wait tRDL, hence the extra idle state
                -- back to back transaction?

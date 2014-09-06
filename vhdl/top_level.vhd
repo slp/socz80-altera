@@ -20,6 +20,8 @@ use UNISIM.VComponents.all;
 
 entity top_level is
     Port ( sysclk_32m          : in    std_logic;
+           sys_clk_pad_i       : in    std_logic;
+           rst_n_pad_i         : in    std_logic;
            leds                : out   std_logic_vector(4 downto 0);
            reset_button        : in    std_logic;
            console_select      : in    std_logic;
@@ -61,12 +63,12 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-    constant clk_freq_mhz        : natural := 128; -- this is the frequency which the PLL outputs, in MHz.
+    constant clk_freq_mhz        : natural := 100; -- this is the frequency which the PLL outputs, in MHz.
 
     -- SDRAM configuration
-    constant sdram_address_width : natural := 22;
-    constant sdram_column_bits   : natural := 8;
-    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/4096-1;
+    constant sdram_address_width : natural := 24;
+    constant sdram_column_bits   : natural := 9;
+    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/8192-1;
 
     -- For simulation, we don't need a long init stage. but for real DRAM we need approx 101us.
     -- The constant below has a different value when interpreted by the synthesis and simulator 
@@ -353,7 +355,7 @@ begin
                coldboot => coldboot,
 
                -- interface to hardware SDRAM chip
-               SDRAM_CLK       => SDRAM_CLK,
+               SDRAM_CLK       => open,
                SDRAM_CKE       => SDRAM_CKE,
                SDRAM_CS        => SDRAM_CS,
                SDRAM_nRAS      => SDRAM_nRAS,
@@ -407,25 +409,6 @@ begin
                req_write => req_write
            );
 
-   -- UART connected to MAX3232 on optional IO board
-   uart1: entity work.uart_interface
-   generic map ( flow_control => 1, clk_frequency => (clk_freq_mhz * 1000000) )
-   port map(
-               clk => clk,
-               reset => system_reset,
-               serial_in => uart1_rx,
-               serial_out => uart1_tx,
-               serial_rts => uart1_rts,
-               serial_cts => uart1_cts,
-               cpu_address => virtual_address(2 downto 0),
-               cpu_data_in => cpu_data_out,
-               cpu_data_out => uart1_data_out,
-               enable => uart1_cs,
-               interrupt => uart1_interrupt,
-               req_read => req_read,
-               req_write => req_write
-           );
-
    -- Timer device (internally scales the clock to 1MHz)
    timer: entity work.timer
    generic map ( clk_frequency => (clk_freq_mhz * 1000000) )
@@ -439,42 +422,6 @@ begin
                req_read => req_read,
                req_write => req_write,
                interrupt => timer_interrupt
-           );
-
-   -- SPI master device connected to Papilio Pro 8MB flash ROM
-   spimaster0: entity work.spimaster
-   port map(
-               clk => clk,
-               reset => system_reset,
-               cpu_address => virtual_address(2 downto 0),
-               cpu_wait => spimaster0_wait,
-               data_in => cpu_data_out,
-               data_out => spimaster0_data_out,
-               enable => spimaster0_cs,
-               req_read => req_read,
-               req_write => req_write,
-               slave_cs => flash_spi_cs,
-               slave_clk => flash_spi_clk,
-               slave_mosi => flash_spi_mosi,
-               slave_miso => flash_spi_miso
-           );
-
-   -- SPI master device connected to SD card socket on the IO board
-   spimaster1: entity work.spimaster
-   port map(
-               clk => clk,
-               reset => system_reset,
-               cpu_address => virtual_address(2 downto 0),
-               cpu_wait => spimaster1_wait,
-               data_in => cpu_data_out,
-               data_out => spimaster1_data_out,
-               enable => spimaster1_cs,
-               req_read => req_read,
-               req_write => req_write,
-               slave_cs => sdcard_spi_cs,
-               slave_clk => sdcard_spi_clk,
-               slave_mosi => sdcard_spi_mosi,
-               slave_miso => sdcard_spi_miso
            );
 
    -- GPIO to FPGA pins and/or internal signals
@@ -508,56 +455,13 @@ begin
                clk_enable => cpu_clk_enable
            );
 
-   -- PLL scales 32MHz Papilio Pro oscillator frequency to 128MHz
-   -- clock for our logic.
-   clock_pll: PLL_BASE 
-   generic map (
-               BANDWIDTH      => "OPTIMIZED",        -- "HIGH", "LOW" or "OPTIMIZED" 
-               CLKFBOUT_MULT  => 16,                 -- Multiply value for all CLKOUT clock outputs (1-64)
-               CLKFBOUT_PHASE => 0.0,                -- Phase offset in degrees of the clock feedback output (0.0-360.0).
-               CLKIN_PERIOD   => 31.25,              -- Input clock period in ns to ps resolution (i.e. 33.333 is 30 MHz).
-                                                     -- CLKOUT0_DIVIDE - CLKOUT5_DIVIDE: Divide amount for CLKOUT# clock output (1-128)
-               CLKOUT0_DIVIDE => 4,                  -- 32MHz * 16 / 4 = 128MHz. Adjust clk_freq_mhz constant (above) if you change this.
-               CLKOUT1_DIVIDE => 1,
-               CLKOUT2_DIVIDE => 1,       
-               CLKOUT3_DIVIDE => 1,
-               CLKOUT4_DIVIDE => 1,       
-               CLKOUT5_DIVIDE => 1,
-                                               -- CLKOUT0_DUTY_CYCLE - CLKOUT5_DUTY_CYCLE: Duty cycle for CLKOUT# clock output (0.01-0.99).
-               CLKOUT0_DUTY_CYCLE => 0.5, CLKOUT1_DUTY_CYCLE => 0.5,
-               CLKOUT2_DUTY_CYCLE => 0.5, CLKOUT3_DUTY_CYCLE => 0.5,
-               CLKOUT4_DUTY_CYCLE => 0.5, CLKOUT5_DUTY_CYCLE => 0.5,
-                                               -- CLKOUT0_PHASE - CLKOUT5_PHASE: Output phase relationship for CLKOUT# clock output (-360.0-360.0).
-               CLKOUT0_PHASE => 0.0,      CLKOUT1_PHASE => 0.0, -- Capture clock
-               CLKOUT2_PHASE => 0.0,      CLKOUT3_PHASE => 0.0,
-               CLKOUT4_PHASE => 0.0,      CLKOUT5_PHASE => 0.0,
-
-               CLK_FEEDBACK => "CLKFBOUT",           -- Clock source to drive CLKFBIN ("CLKFBOUT" or "CLKOUT0")
-               COMPENSATION => "SYSTEM_SYNCHRONOUS", -- "SYSTEM_SYNCHRONOUS", "SOURCE_SYNCHRONOUS", "EXTERNAL" 
-               DIVCLK_DIVIDE => 1,                   -- Division value for all output clocks (1-52)
-               REF_JITTER => 0.1,                    -- Reference Clock Jitter in UI (0.000-0.999).
-               RESET_ON_LOSS_OF_LOCK => FALSE        -- Must be set to FALSE
-           ) 
-   port map(
-               CLKIN    => sysclk_32m,   -- 1-bit input: Clock input
-               CLKFBOUT => clk_feedback, -- 1-bit output: PLL_BASE feedback output
-               CLKFBIN  => clk_feedback, -- 1-bit input: Feedback clock input
-                                         -- CLKOUT0 - CLKOUT5: 1-bit (each) output: Clock outputs
-               CLKOUT0 => clk_unbuffered, -- 64MHz clock output
-               CLKOUT1 => open,
-               CLKOUT2 => open,      
-               CLKOUT3 => open,
-               CLKOUT4 => open,      
-               CLKOUT5 => open,
-               LOCKED  => open,  -- 1-bit output: PLL_BASE lock status output
-               RST     => '0'    -- 1-bit input: Reset input
+   pll: entity work.pll
+   port map (
+               areset => open,
+               inclk0 => sys_clk_pad_i,
+               c0 => sdram_clk, -- 100 Mhz - 180 deg
+               c1 => clk, -- 100 Mhz
+               locked => open
            );
-
-   -- Buffering of clocks
-   BUFG_clk: BUFG 
-   port map(
-               O => clk,     
-               I => clk_unbuffered
-            );
 
 end Behavioral;
