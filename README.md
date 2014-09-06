@@ -1,7 +1,7 @@
 socz80-de0_nano
 ===============
 
-This is a port of Will Sowerbutts' socz80 retro microcomputer (sowerbutts.com/socz80/) for the Tersasic DE0-nano board.
+This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for the Tersasic DE0-nano board.
 
 Building
 ========
