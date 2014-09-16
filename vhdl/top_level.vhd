@@ -61,7 +61,7 @@ entity top_level is
 end top_level;
 
 architecture Behavioral of top_level is
-    constant clk_freq_mhz        : natural := 100; -- this is the frequency which the PLL outputs, in MHz.
+    constant clk_freq_mhz        : natural := 50; -- this is the frequency which the PLL outputs, in MHz.
 
     -- SDRAM configuration
     constant sdram_address_width : natural := 24;

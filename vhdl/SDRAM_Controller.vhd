@@ -343,7 +343,7 @@ main_proc: process(clk)
                   -- Start the refresh cycle. 
                   -- This tasks tRFC (66ns), so 6 idle cycles are needed @ 100MHz
                   ------------------------------------------------------------------------
-                  state       <= s_idle_in_6;
+                  state       <= s_idle_in_3;
                   iob_command <= CMD_REFRESH;
                   startup_refresh_count <= startup_refresh_count - cycles_per_refresh+1;
                elsif got_transaction = '1' then
@@ -351,7 +351,7 @@ main_proc: process(clk)
                   -- Start the read or write cycle. 
                   -- First task is to open the row
                   --------------------------------
-                  state       <= s_open_in_2;
+                  state       <= s_open_in_1;
                   iob_command <= CMD_ACTIVE;
                   iob_address <= save_row;
                   iob_bank    <= save_bank;
