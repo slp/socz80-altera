@@ -17,59 +17,62 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity top_level is
-    Port ( sysclk_32m          : in    std_logic;
-           sys_clk_pad_i       : in    std_logic;
-           rst_n_pad_i         : in    std_logic;
-           leds                : out   std_logic_vector(4 downto 0);
-           reset_button        : in    std_logic;
-           console_select      : in    std_logic;
+    Port (
+        CLOCK_50          : in    std_logic;
+        LEDG              : out   std_logic_vector(9 downto 0);
+        BUTTON            : in    std_logic_vector(2 downto 0);
+        SW                : in    std_logic_vector(9 downto 0);
 
-           -- UART0 (to FTDI USB chip, no flow control)
-           serial_rx           : in    std_logic;
-           serial_tx           : out   std_logic;
+        -- UART0 (to MAX3232 level shifter chip, hardware flow control)
+        UART_RXD           : in    std_logic;
+        UART_TXD           : out   std_logic;
 
-           -- UART0 (to MAX3232 level shifter chip, hardware flow control)
-           uart1_rx            : in    std_logic;
-           uart1_cts           : in    std_logic;
-           uart1_tx            : out   std_logic;
-           uart1_rts           : out   std_logic;
+        -- GPIOs
+        GPIO1_D            : inout    std_logic_vector(31 downto 0);
+        GPIO0_D            : inout    std_logic_vector(31 downto 0);
 
-           -- SPI flash chip
-           flash_spi_cs        : out   std_logic;
-           flash_spi_clk       : out   std_logic;
-           flash_spi_mosi      : out   std_logic;
-           flash_spi_miso      : in    std_logic;
+        -- 7-SEG Display
+        HEX0_D:  out   std_logic_vector(6 downto 0);
+        --HEX0_DP: out   std_logic;
+        HEX1_D:  out   std_logic_vector(6 downto 0);
+        --HEX1_DP: out   std_logic;
+        HEX2_D:  out   std_logic_vector(6 downto 0);
+        --HEX2_DP: out   std_logic;
+        HEX3_D:  out   std_logic_vector(6 downto 0);
+        --sHEX3_DP: out   std_logic
 
-           -- SD card socket
-           sdcard_spi_cs       : out   std_logic;
-           sdcard_spi_clk      : out   std_logic;
-           sdcard_spi_mosi     : out   std_logic;
-           sdcard_spi_miso     : in    std_logic;
+        -- SD card socket
+        SD_CLK  : out std_logic;
+        SD_CMD  : in std_logic;
+        SD_DAT0 : out std_logic;
+        SD_DAT3 : out std_logic;
+        SD_WP_N : in std_logic;
 
-           -- SDRAM chip
-           SDRAM_CLK           : out   std_logic;
-           SDRAM_CKE           : out   std_logic;
-           SDRAM_CS            : out   std_logic;
-           SDRAM_nRAS          : out   std_logic;
-           SDRAM_nCAS          : out   std_logic;
-           SDRAM_nWE           : out   std_logic;
-           SDRAM_DQM           : out   std_logic_vector( 1 downto 0);
-           SDRAM_ADDR          : out   std_logic_vector (12 downto 0);
-           SDRAM_BA            : out   std_logic_vector( 1 downto 0);
-           SDRAM_DQ            : inout std_logic_vector (15 downto 0)
-       );
+        -- SDRAM chip
+        DRAM_CLK            : out   std_logic;
+        DRAM_CKE            : out   std_logic;
+        DRAM_CS_N           : out   std_logic;
+        DRAM_RAS_N          : out   std_logic;
+        DRAM_CAS_N          : out   std_logic;
+        DRAM_WE_N           : out   std_logic;
+        DRAM_DQM            : out   std_logic_vector( 1 downto 0);
+        DRAM_ADDR           : out   std_logic_vector (12 downto 0);
+        DRAM_BA             : out   std_logic_vector( 1 downto 0);
+        DRAM_DQ             : inout std_logic_vector (15 downto 0)
+    );
 end top_level;
 
 architecture Behavioral of top_level is
     constant clk_freq_mhz        : natural := 50; -- this is the frequency which the PLL outputs, in MHz.
 
     -- SDRAM configuration
-    constant sdram_address_width : natural := 24;
-    constant sdram_column_bits   : natural := 9;
-    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/8192-1;
+    constant sdram_line_count    : natural := 4096;
+    constant sdram_address_width : natural := 22;
+    constant sdram_column_bits   : natural := 8;
+    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/sdram_line_count-1;
 
     -- For simulation, we don't need a long init stage. but for real DRAM we need approx 101us.
-    -- The constant below has a different value when interpreted by the synthesis and simulator 
+    -- The constant below has a different value when interpreted by the synthesis and simulator
     -- tools in order to achieve the desired timing in each.
     constant sdram_startup_cycles: natural := 101 * clk_freq_mhz
     -- pragma translate_off
@@ -146,6 +149,10 @@ architecture Behavioral of top_level is
     -- GPIO
     signal gpio_input           : std_logic_vector(7 downto 0);
     signal gpio_output          : std_logic_vector(7 downto 0);
+    signal gpio_bank0_input     : std_logic_vector(31 downto 0);
+    signal gpio_bank0_output    : std_logic_vector(31 downto 0);
+    signal gpio_bank1_input     : std_logic_vector(31 downto 0);
+    signal gpio_bank1_output    : std_logic_vector(31 downto 0);
 
     -- Interrupts
     signal cpu_interrupt_in     : std_logic;
@@ -161,13 +168,13 @@ begin
         if rising_edge(clk) then
             -- Xilinx advises using two flip-flops are used to bring external
             -- signals which feed control logic into our clock domain.
-            reset_button_clk1 <= reset_button;
+            reset_button_clk1 <= not BUTTON(0);
             reset_button_sync <= reset_button_clk1;
-            console_select_clk1 <= console_select;
+            console_select_clk1 <= SW(9);
             console_select_sync <= console_select_clk1;
 
             -- reset the system when requested
-            if (power_on_reset(0) = '1') then
+            if (power_on_reset(0) = '1' or reset_button_sync = '1' or reset_request_uart = '1') then
                 system_reset <= '1';
             else
                 system_reset <= '0';
@@ -188,19 +195,39 @@ begin
     end process;
 
     -- GPIO input signal routing
-    gpio_input <= coldboot & swap_uart01 & "000000";
+    gpio_input(0) <= SW(0);
+    gpio_input(1) <= SW(1);
+    gpio_input(2) <= SW(2);
+    gpio_input(3) <= SW(3);
+    gpio_input(4) <= SW(4);
+    gpio_input(5) <= SW(5);
+    gpio_input(6) <= swap_uart01;
+    gpio_input(7) <= coldboot;
 
     -- GPIO output signal routing
-    leds(0) <= gpio_output(0);
-    leds(1) <= gpio_output(1);
-    leds(2) <= gpio_output(2);
-    leds(3) <= gpio_output(3);
+    LEDG(0) <= gpio_output(0);
+    LEDG(1) <= gpio_output(1);
+    LEDG(2) <= gpio_output(2);
+    LEDG(3) <= gpio_output(3);
+    LEDG(4) <= gpio_output(4);
+    LEDG(5) <= gpio_output(5);
+    LEDG(6) <= gpio_output(6);
+    LEDG(7) <= gpio_output(7);
 
     -- User LED (LED1) on Papilio Pro indicates when the CPU is being asked to wait (eg by the SDRAM cache)
-    leds(4) <= cpu_wait;
+    LEDG(9) <= cpu_wait;
+
+    --
+    LEDG(8) <= clk or not(BUTTON(2));
 
     -- Interrupt signal for the CPU
     cpu_interrupt_in <= (timer_interrupt or uart0_interrupt or uart1_interrupt);
+
+    -- 7 Seg
+    seg0: entity work.DE0_SEG7 port map(virtual_address(3 downto 0), HEX0_D);
+    seg1: entity work.DE0_SEG7 port map(virtual_address(7 downto 4), HEX1_D);
+    seg2: entity work.DE0_SEG7 port map(virtual_address(11 downto 8), HEX2_D);
+    seg3: entity work.DE0_SEG7 port map(virtual_address(15 downto 12), HEX3_D);
 
     -- Z80 CPU core
     cpu: entity work.Z80cpu
@@ -311,8 +338,8 @@ begin
        spimaster1_wait when spimaster1_cs='1' else
        '0';
 
-    -- the MMU can, at any time, request the CPU wait (this is used when 
-    -- translating IO to memory requests, to implement a wait state for 
+    -- the MMU can, at any time, request the CPU wait (this is used when
+    -- translating IO to memory requests, to implement a wait state for
     -- the "17th page")
     cpu_wait <= (mem_wait or mmu_wait);
 
@@ -353,16 +380,16 @@ begin
                coldboot => coldboot,
 
                -- interface to hardware SDRAM chip
-               SDRAM_CLK       => open,
-               SDRAM_CKE       => SDRAM_CKE,
-               SDRAM_CS        => SDRAM_CS,
-               SDRAM_nRAS      => SDRAM_nRAS,
-               SDRAM_nCAS      => SDRAM_nCAS,
-               SDRAM_nWE       => SDRAM_nWE,
-               SDRAM_DQM       => SDRAM_DQM,
-               SDRAM_BA        => SDRAM_BA,
-               SDRAM_ADDR      => SDRAM_ADDR,
-               SDRAM_DQ        => SDRAM_DQ
+              SDRAM_CLK        => open,
+              SDRAM_CKE        => DRAM_CKE,
+              SDRAM_CS         => DRAM_CS_N,
+              SDRAM_nCAS       => DRAM_CAS_N,
+              SDRAM_nRAS       => DRAM_RAS_N,
+              SDRAM_nWE        => DRAM_WE_N,
+              SDRAM_DQM        => DRAM_DQM,
+              SDRAM_BA         => DRAM_BA,
+              SDRAM_ADDR       => DRAM_ADDR,
+              SDRAM_DQ         => DRAM_DQ
            );
 
    -- 4KB system ROM implemented in block RAM
@@ -394,8 +421,8 @@ begin
                clk => clk,
                reset => system_reset,
                reset_out => reset_request_uart, -- result of watching for reset sequence on the input
-               serial_in => serial_rx,
-               serial_out => serial_tx,
+               serial_in => UART_RXD,
+               serial_out => UART_TXD,
                serial_rts => open,
                serial_cts => '0',
                cpu_address => virtual_address(2 downto 0),
@@ -403,6 +430,26 @@ begin
                cpu_data_out => uart0_data_out,
                enable => uart0_cs,
                interrupt => uart0_interrupt,
+               req_read => req_read,
+               req_write => req_write
+           );
+
+   -- UART connected to two GPIOs (1(30), 1(31))
+   uart1: entity work.uart_interface
+   generic map ( watch_for_reset => 1, clk_frequency => (clk_freq_mhz * 1000000) )
+   port map(
+               clk => clk,
+               reset => system_reset,
+               reset_out => open,
+               serial_in => GPIO1_D(30),
+               serial_out => GPIO1_D(31),
+               serial_rts => open,
+               serial_cts => '0',
+               cpu_address => virtual_address(2 downto 0),
+               cpu_data_in => cpu_data_out,
+               cpu_data_out => uart1_data_out,
+               enable => uart1_cs,
+               interrupt => uart1_interrupt,
                req_read => req_read,
                req_write => req_write
            );
@@ -436,9 +483,28 @@ begin
                output_pins => gpio_output
            );
 
+  -- SPI master device connected to SD card socket on the IO board
+  spimaster1: entity work.spimaster
+  port map(
+              clk => clk,
+              reset => system_reset,
+              cpu_address => virtual_address(2 downto 0),
+              cpu_wait => spimaster1_wait,
+              data_in => cpu_data_out,
+              data_out => spimaster1_data_out,
+              enable => spimaster1_cs,
+              req_read => req_read,
+              req_write => req_write,
+              slave_cs => SD_DAT3,
+              slave_clk => SD_CLK,
+              slave_mosi => SD_DAT0,
+              slave_miso => SD_CMD
+          );
+
+
    -- An attempt to allow the CPU clock to be scaled back to run
    -- at slower speeds without affecting the clock signal sent to
-   -- IO devices. Basically this was an attempt to make CP/M games 
+   -- IO devices. Basically this was an attempt to make CP/M games
    -- playable :) Very limited success. Might be simpler to remove
    -- this entirely.
    clkscale: entity work.clkscale
@@ -456,8 +522,8 @@ begin
    pll: entity work.pll
    port map (
                areset => open,
-               inclk0 => sys_clk_pad_i,
-               c0 => sdram_clk, -- 100 Mhz - 180 deg
+               inclk0 => CLOCK_50,
+               c0 => DRAM_CLK, -- 100 Mhz - 180 deg
                c1 => clk, -- 100 Mhz
                locked => open
            );

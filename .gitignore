@@ -1,0 +1,6 @@
+*.bak
+output_files/
+db/
+greybox_tmp/
+incremental_db/
+simulation/

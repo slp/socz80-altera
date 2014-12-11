@@ -1,4 +1,4 @@
-DESIGN_NAME = de0_nano
+DESIGN_NAME = de0
 QUARTUS_OPTIONS =
 
 
@@ -20,4 +20,8 @@ sta: asm
 	quartus_sta $(QUARTUS_OPTIONS) $(DESIGN_NAME)
 
 load: asm
-	quartus_pgm --mode=jtag -o p\;$(DESIGN_NAME).sof
+	quartus_pgm --mode=jtag -o p\;output_files/$(DESIGN_NAME).sof
+
+loadonly:
+	quartus_sh $(QUARTUS_OPTIONS)
+	quartus_pgm --mode=jtag -o p\;output_files/$(DESIGN_NAME).sof

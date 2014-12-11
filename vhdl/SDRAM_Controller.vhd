@@ -102,19 +102,19 @@ architecture Behavioral of SDRAM_Controller is
    signal iob_cke         : std_logic := '0';
    signal iob_bank        : std_logic_vector( 1 downto 0) := (others => '0');
    
-   attribute IOB: string;
-   attribute IOB of iob_command: signal is "true";
-   attribute IOB of iob_address: signal is "true";
-   attribute IOB of iob_dqm    : signal is "true";
-   attribute IOB of iob_cke    : signal is "true";
-   attribute IOB of iob_bank   : signal is "true";
-   attribute IOB of iob_data   : signal is "true";
+   --attribute IOB: string;
+   --attribute IOB of iob_command: signal is "true";
+   --attribute IOB of iob_address: signal is "true";
+   --attribute IOB of iob_dqm    : signal is "true";
+   --attribute IOB of iob_cke    : signal is "true";
+   --attribute IOB of iob_bank   : signal is "true";
+   --attribute IOB of iob_data   : signal is "true";
    
    signal iob_data_next      : std_logic_vector(15 downto 0) := (others => '0');
    signal captured_data      : std_logic_vector(15 downto 0) := (others => '0');
    signal captured_data_last : std_logic_vector(15 downto 0) := (others => '0');
    signal sdram_din          : std_logic_vector(15 downto 0);
-   attribute IOB of captured_data : signal is "true";
+   --attribute IOB of captured_data : signal is "true";
    
    type fsm_state is (s_startup,
                       s_idle_in_6, s_idle_in_5, s_idle_in_4,   s_idle_in_3, s_idle_in_2, s_idle_in_1,

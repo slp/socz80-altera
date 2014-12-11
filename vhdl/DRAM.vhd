@@ -122,7 +122,7 @@ architecture behaviour of DRAM is
 begin
 
     -- this should be based on the generic, really
-    cmd_address <= '0' & '0' & mem_address(22 downto 2); -- address_tag & address_line
+    cmd_address <= mem_address((sdram_address_width) downto 2); -- address_tag & address_line
     cmd_data_in <= data_in & data_in & data_in & data_in; -- write the same data four times
     cmd_wr <= req_write;
     coldboot <= not seen_ready;
