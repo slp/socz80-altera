@@ -1,7 +1,7 @@
 socz80-de0_nano
 ===============
 
-This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for the Tersasic DE0-nano board.
+This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for the Tersasic DE0 board base on the DE0 nano port from https://github.com/slp/socz80-de0_nano.
 
 Building
 ========
@@ -16,6 +16,9 @@ This project only contains the VHDL files for building the core and its depencie
 TODO
 ====
 
-* To be able to get this design to run on the DE0-nano without breaking the timing constrains in excess, I had to remove the block RAM based cache. Even without this component, the design barely accomodates to said contrains. A better solution would probably be implementing an arbiter for the SDRAM, allowing this one and its controller to run at 100 Mhz, while the rest of the components run at ~70 Mhz.
- 
-* The original design was developed for a Papilo Pro board, which feautres a reasonable amount of non volatile memory onboard. The DE0-nano only provides a 2KB EEPROM, so I'm thinking about adding an SD card (using its SPI mode) to the design, for storing the ramdisks needed for running CP/M.
+* Make it work on the DE0. Z80 + SRAM and ROM are working, but SDRAM need more tweak. I also need to publish the changes.
+* Add support for the integrated SD Card
+* Video Out and PS2 for a keyboard could be also a nice entry.
+* Currently the 4 hex digit are used to show the CPU PC, but I will also create an IO device to show on them the value you want
+* Also add all the SW switch and Button 1 and 2 to GPI and the LED to GPO minus the one used to display the CPU status. and Button 0 is used for Reset.
+* The original design was developed for a Papilo Pro board, which feautres a reasonable amount of non volatile memory onboard. The DE0 have a flash device, it may be nice to allow to map it to memory. Not sure if allow write to it is a good idea.
