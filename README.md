@@ -1,12 +1,12 @@
-socz80-de0_nano
-===============
+socz80-de0
+==========
 
-This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for the Tersasic DE0 board base on the DE0 nano port from https://github.com/slp/socz80-de0_nano.
+This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for the Tersasic DE0 board based on the DE0 nano port from https://github.com/slp/socz80-de0_nano.
 
 Building
 ========
 
-Make sure you have the Altera Quartus II software (I've used version 13.1 from Web Edition) binaries on your $PATH. Then run "make" for building the SOF file, and "make load" for loading it on your board.
+Make sure you have the Altera Quartus II software (I've used version 13.0 from Web Edition) binaries on your $PATH. Then run "make" for building the SOF file, and "make load" for loading it on your board.
 
 Software
 ========
