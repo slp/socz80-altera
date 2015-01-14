@@ -1,4 +1,4 @@
-DESIGN_NAME = de0_nano
+DESIGN_NAME = de2
 QUARTUS_OPTIONS =
 
 

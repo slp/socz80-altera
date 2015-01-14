@@ -170,7 +170,7 @@ BEGIN
 		clk2_phase_shift => "0",
 		compensate_clock => "CLK1",
 		inclk0_input_frequency => 20000,
-		intended_device_family => "Cyclone IV E",
+		intended_device_family => "Cyclone II",
 		lpm_hint => "CBX_MODULE_PREFIX=pll",
 		lpm_type => "altpll",
 		operation_mode => "NORMAL",

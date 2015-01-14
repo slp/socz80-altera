@@ -205,16 +205,18 @@ begin
    sdram_dqm  <= iob_dqm;
    sdram_ba   <= iob_bank;
    sdram_addr <= iob_address;
+	sdram_din  <= sdram_data;
+   sdram_data <= iob_data when iob_dq_hiz = '0' else (others => 'Z');
    
    ---------------------------------------------------------------
    -- Explicitly set up the tristate I/O buffers on the DQ signals
    ---------------------------------------------------------------
-iob_dq_g: for i in 0 to 15 generate
-   begin
-iob_dq_iob: altiobuf_bidir
-   generic map (number_of_channels => 1)
-   port map ( dataout(0)  => sdram_din(i), dataio(0) => sdram_data(i), datain(0) => iob_data(i), oe(0)  => iob_dq_hiz);
-end generate;
+--iob_dq_g: for i in 0 to 15 generate
+--   begin
+--iob_dq_iob: altiobuf_bidir
+--   generic map (number_of_channels => 1)
+--   port map ( dataout(0)  => sdram_din(i), dataio(0) => sdram_data(i), datain(0) => iob_data(i), oe(0)  => iob_dq_hiz);
+--end generate;
                                      
 capture_proc: process(clk) 
    begin
