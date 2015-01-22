@@ -1,4 +1,4 @@
-socz80-de0_nano
+socz80-altera
 ===============
 
 This is a port of Will Sowerbutts' socz80 retro microcomputer (http://sowerbutts.com/socz80) for Altera FPGA boards, currently supporting DE0-nano, DE2 and DE2-70 from Terasic.
