@@ -62,28 +62,31 @@ if {$make_assignments} {
 	set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 	set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 	# VHDL Files
-	set_global_assignment -name VHDL_FILE vhdl/DE0_SEG7.vhd
-	set_global_assignment -name VHDL_FILE vhdl/uart_interface.vhd
-	set_global_assignment -name VHDL_FILE vhdl/uart.vhd
-	set_global_assignment -name VHDL_FILE vhdl/top_level.vhd
-	set_global_assignment -name VHDL_FILE vhdl/timer.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80se.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_Reg.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_Pack.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_MCode.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_ALU.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80.vhd
-	set_global_assignment -name VHDL_FILE vhdl/SSRAM.vhd
-	set_global_assignment -name VHDL_FILE vhdl/SDRAM_Controller.vhd
-	set_global_assignment -name VHDL_FILE vhdl/pll.vhd
-	set_global_assignment -name VHDL_FILE vhdl/MonZ80.vhd
-	set_global_assignment -name VHDL_FILE vhdl/MMU.vhd
-	set_global_assignment -name VHDL_FILE vhdl/gpio.vhd
-	set_global_assignment -name VHDL_FILE vhdl/fifo.vhd
-	set_global_assignment -name VHDL_FILE vhdl/DRAM.vhd
-	set_global_assignment -name VHDL_FILE vhdl/spimaster.vhd
-	set_global_assignment -name VHDL_FILE vhdl/clkscale.vhd
-	set_global_assignment -name VHDL_FILE vhdl/Z80cpu.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0/DE0_SEG7.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/uart_interface.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/uart.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0/top_level_de0.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/timer.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80se.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_Reg.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_Pack.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_MCode.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_ALU.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/SSRAM.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0/SDRAM_Controller.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0/pll_de0.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/MonZ80.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/MMU.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/gpio.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/fifo.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/DRAM.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/spimaster.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/clkscale.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/Z80cpu.vhd
+    set_global_assignment -name VHDL_FILE ../../vhdl/RAM4K36.vhd
+    set_global_assignment -name VHDL_FILE ../../vhdl/RAM4K9.vhd
+
 	set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 
 	# Assign Port to IOs

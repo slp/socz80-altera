@@ -59,7 +59,9 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 
 package T80_Pack is
-
+    constant T80_TAG_MEM:   std_logic_vector(1 downto 0) := "01";
+    constant T80_TAG_IO:   std_logic_vector(1 downto 0) := "10";
+    
 	component T80
 	generic(
 		Mode : integer := 0;    -- 0 => Z80, 1 => Fast Z80, 2 => 8080, 3 => GB

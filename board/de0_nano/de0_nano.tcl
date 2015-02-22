@@ -56,26 +56,28 @@ if {$make_assignments} {
 	set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 	set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 	set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
-	set_global_assignment -name VHDL_FILE vhdl/DRAM.vhd
-	set_global_assignment -name VHDL_FILE vhdl/SDRAM_Controller.vhd
-	set_global_assignment -name VHDL_FILE vhdl/gpio.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80.vhd
-	set_global_assignment -name VHDL_FILE vhdl/top_level.vhd
-	set_global_assignment -name VHDL_FILE vhdl/Z80cpu.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_Pack.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_ALU.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_MCode.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80_Reg.vhd
-	set_global_assignment -name VHDL_FILE vhdl/T80se.vhd
-	set_global_assignment -name VHDL_FILE vhdl/MMU.vhd
-	set_global_assignment -name VHDL_FILE vhdl/MonZ80.vhd
-	set_global_assignment -name VHDL_FILE vhdl/SSRAM.vhd
-	set_global_assignment -name VHDL_FILE vhdl/uart_interface.vhd
-	set_global_assignment -name VHDL_FILE vhdl/fifo.vhd
-	set_global_assignment -name VHDL_FILE vhdl/uart.vhd
-	set_global_assignment -name VHDL_FILE vhdl/timer.vhd
-	set_global_assignment -name VHDL_FILE vhdl/pll.vhd
-	set_global_assignment -name VHDL_FILE vhdl/clkscale.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0_nano/SDRAM_Controller.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/DRAM.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/gpio.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0_nano/top_level_de0_nano.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/Z80cpu.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_Pack.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_ALU.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_MCode.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80_Reg.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/T80se.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/MMU.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/MonZ80.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/SSRAM.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/uart_interface.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/fifo.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/uart.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/timer.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/board/de0_nano/pll_de0_nano.vhd
+	set_global_assignment -name VHDL_FILE ../../vhdl/clkscale.vhd
+        set_global_assignment -name VHDL_FILE ../../vhdl/RAM4K36.vhd
+        set_global_assignment -name VHDL_FILE ../../vhdl/RAM4K9.vhd
 	set_location_assignment PIN_J15 -to rst_n_pad_i
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rst_n_pad_i
 	set_location_assignment PIN_R8 -to sys_clk_pad_i
