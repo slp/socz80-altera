@@ -306,8 +306,8 @@ if {$make_assignments} {
 	set_location_assignment PIN_G7 -to DRAM_CS_N
 	set_location_assignment PIN_E5 -to DRAM_CLK
 	set_location_assignment PIN_E6 -to DRAM_CKE
-	set_location_assignment PIN_B5 -to DRAM_BA_0
-	set_location_assignment PIN_A4 -to DRAM_BA_1
+	set_location_assignment PIN_B5 -to DRAM_BA[0]
+	set_location_assignment PIN_A4 -to DRAM_BA[1]
 	set_location_assignment PIN_F10 -to DRAM_DQ[15]
 	set_location_assignment PIN_E10 -to DRAM_DQ[14]
 	set_location_assignment PIN_A10 -to DRAM_DQ[13]
@@ -324,8 +324,8 @@ if {$make_assignments} {
 	set_location_assignment PIN_H10 -to DRAM_DQ[2]
 	set_location_assignment PIN_G10 -to DRAM_DQ[1]
 	set_location_assignment PIN_D10 -to DRAM_DQ[0]
-	set_location_assignment PIN_E7 -to DRAM_LDQM
-	set_location_assignment PIN_B8 -to DRAM_UDQM
+	set_location_assignment PIN_E7 -to DRAM_DQM[0]
+	set_location_assignment PIN_B8 -to DRAM_DQM[1]
 	set_location_assignment PIN_F7 -to DRAM_RAS_N
 	set_location_assignment PIN_D6 -to DRAM_WE_N
 	set_location_assignment PIN_B12 -to CLOCK_50_2
@@ -576,8 +576,8 @@ if {$make_assignments} {
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_CLK
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_CKE
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_CAS_N
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_BA_1
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_BA_0
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_BA[1]
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_BA[0]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[0]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[1]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[2]
@@ -592,9 +592,9 @@ if {$make_assignments} {
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[11]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_ADDR[12]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_WE_N
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_UDQM
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_DQM[0]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_RAS_N
-	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_LDQM
+	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_DQM[1]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_DQ[0]
 	set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to DRAM_DQ[1]
 

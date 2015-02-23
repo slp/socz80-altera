@@ -67,10 +67,10 @@ architecture Behavioral of top_level is
     constant clk_freq_mhz        : natural := 50; -- this is the frequency which the PLL outputs, in MHz.
 
     -- SDRAM configuration
-    constant sdram_line_count    : natural := 4096;
-    constant sdram_address_width : natural := 22;
-    constant sdram_column_bits   : natural := 8;
-    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/sdram_line_count-1;
+    constant sdram_address_width : natural := 24;
+    constant sdram_column_bits   : natural := 9;
+    constant cycles_per_refresh  : natural := (64000*clk_freq_mhz)/8192-1;
+
 
     -- For simulation, we don't need a long init stage. but for real DRAM we need approx 101us.
     -- The constant below has a different value when interpreted by the synthesis and simulator
